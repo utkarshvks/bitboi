@@ -1,9 +1,16 @@
-name: Deploy Expo Web to GitHub Pages
+name: Manage GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      action:
+        description: What do you want to do?
+        required: true
+        default: deploy
+        type: choice
+        options:
+          - deploy
+          - offline
 
 permissions:
   contents: read
@@ -22,20 +29,48 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
+        if: ${{ inputs.action == 'deploy' }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install dependencies
+        if: ${{ inputs.action == 'deploy' }}
         run: npm install
 
       - name: Build Expo web
+        if: ${{ inputs.action == 'deploy' }}
         run: npx expo export -p web
+
+      - name: Create offline page
+        if: ${{ inputs.action == 'offline' }}
+        run: |
+          mkdir -p dist
+          cat > dist/index.html <<'EOF'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <title>Bitboi offline</title>
+              <style>
+                body { font-family: system-ui, sans-serif; margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f7f8fa; color: #17243a; }
+                main { text-align: center; padding: 32px; }
+                h1 { margin-bottom: 8px; }
+                p { color: #5b6b82; }
+              </style>
+            </head>
+            <body>
+              <main>
+                <h1>Bitboi is offline</h1>
+                <p>This app is currently not published.</p>
+              </main>
+            </body>
+          </html>
+          EOF
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        with:
-          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -49,6 +84,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Publish to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
