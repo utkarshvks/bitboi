@@ -12,6 +12,13 @@
       "adaptiveIcon": {
         "backgroundColor": "#F5F8FC"
       }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "experiments": {
+      "baseUrl": "/bitboi"
     }
   }
 }
